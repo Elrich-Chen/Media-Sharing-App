@@ -1,0 +1,16 @@
+[project]
+name = "tech-w-tim"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "aiosqlite>=0.22.0",
+    "fastapi>=0.125.0",
+    "fastapi-users[sqlalchemy]>=15.0.1",
+    "imagekitio>=5.0.0",
+    "python-dotenv>=1.2.1",
+    "requests>=2.32.5",
+    "streamlit>=1.52.2",
+    "uvicorn[standard]>=0.38.0",
+]
