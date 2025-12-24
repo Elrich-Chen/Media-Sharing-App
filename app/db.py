@@ -18,6 +18,7 @@ class Base(DeclarativeBase): #cannot directly inherit from declarative base
 
 #inherits SQL's User Table that comes with prepopulated fields, + Base
 class User(SQLAlchemyBaseUserTableUUID, Base):
+    __tablename__ = "users"
     posts = relationship("Post", back_populates="user")
 
 
