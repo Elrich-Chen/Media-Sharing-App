@@ -4,6 +4,7 @@ import os
 
 load_dotenv()
 
+#imagekit now becomes the client
 imagekit = ImageKit(
     private_key=os.getenv("IMAGEKIT_PRIVATE_KEY")
 )

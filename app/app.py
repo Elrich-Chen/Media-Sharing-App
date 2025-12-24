@@ -1,5 +1,6 @@
 #the fast api app is coded here in app.py
 from fastapi import FastAPI, HTTPException, File, UploadFile, Form, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from app.schemas import PostCreate, UserCreate, UserRead, UserUpdate
 from app.db import Post, create_db_and_tables, get_async_session, User
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,6 +18,20 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
+
+
+origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 #auth connections
 app.include_router(fastapi_users.get_auth_router(auth_backend), prefix='/auth/jwt', tags=["auth"])
@@ -53,7 +68,8 @@ async def upload_file(
             caption=caption,
             url=upload_result.url,              # ImageKit CDN URL for the uploaded file
             file_type="video" if file.content_type.startswith("video/") else "image",
-            file_name=upload_result.name        # Use the actual name from ImageKit response (no quotes!)
+            file_name=upload_result.name,        # Use the actual name from ImageKit response (no quotes!)
+            file_id= upload_result.file_id   # ImageKit's unique file ID
         )
         
         session.add(post)
@@ -108,7 +124,7 @@ async def delete_post(post_id: str, session: AsyncSession=Depends(get_async_sess
         post_uuid = uuid.UUID(post_id)
 
         result = await session.execute(select(Post).where(Post.id == post_uuid))
-        post = result.scalars().first()
+        post = result.scalars().first() #convert rows into python objects
 
         if not post:
             raise HTTPException(status_code=404, detail="Post not found")
@@ -116,6 +132,7 @@ async def delete_post(post_id: str, session: AsyncSession=Depends(get_async_sess
         if post.user_id != user.id:
             raise HTTPException(status_code=403, detail="You dont have permission to delete this post")
         
+        imagekit.files.delete(file_id=post.file_id)
         await session.delete(post)
         await session.commit()
 
